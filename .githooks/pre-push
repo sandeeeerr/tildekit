@@ -1,0 +1,16 @@
+#!/bin/bash
+# Holds back suspicious changes and every change to instructions or code until the user confirms (tilde push-check).
+# ponytail: runs the approved engine/ from the remote, unpacked in a temp dir, so a local edit cannot switch the check
+# off. Ceiling: this hook itself and core.hooksPath can still be changed locally; the guard watches for that.
+tmp="$(mktemp -d)"
+trap 'rm -rf "$tmp"' EXIT
+if git archive '@{u}' engine 2>/dev/null | tar -x -C "$tmp" 2>/dev/null && [ -x "$tmp/engine/bin/tilde" ]; then
+  TILDE_HOME="$(git rev-parse --show-toplevel)" "$tmp/engine/bin/tilde" push-check
+  exit $?
+fi
+# The remote still has the single-file version from before the engine split.
+if approved="$(git show '@{u}:bin/tilde' 2>/dev/null)"; then
+  bash -c "$approved" tilde push-check
+  exit $?
+fi
+"$(git rev-parse --show-toplevel)/bin/tilde" push-check

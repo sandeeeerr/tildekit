@@ -1,0 +1,137 @@
+{
+  "about": "Per connector: read is free, ask needs a click from the user (an ask rule in settings.json), deny stays closed even with a click. A tool that is not listed is closed. The account IDs are in the home's tilde.json; a connector without an ID is not watched.",
+  "notes": {
+    "atlassian.executeRead": "The server also runs write operations through executeRead, so the guard checks the operation name as well.",
+    "cloudflare.d1_database_query": "Also runs INSERT and DROP. ponytail: closed; allow SELECT only once that proves necessary."
+  },
+  "connectors": {
+    "slack": {
+      "prefix": "slack_",
+      "read": [
+        "get_reactions", "list_channel_members", "list_user_channels", "read_canvas", "read_channel", "read_file",
+        "read_list", "read_thread", "read_user_profile", "search_channels", "search_emojis", "search_public",
+        "search_public_and_private", "search_users"
+      ],
+      "ask": [
+        "add_list_record", "add_reaction", "complete_file_upload", "create_canvas", "create_conversation",
+        "create_list", "get_file_upload_url", "schedule_message", "send_message", "send_message_draft",
+        "update_canvas", "update_list", "update_list_record"
+      ],
+      "deny": []
+    },
+    "clickup": {
+      "prefix": "clickup_",
+      "read": [
+        "download_document_page_attachment", "download_task_attachment", "filter_tasks", "find_member_by_name",
+        "get_bulk_tasks_time_in_status", "get_chat_channel_messages", "get_chat_channels", "get_chat_message_replies",
+        "get_current_time_entry", "get_custom_fields", "get_document_pages", "get_folder", "get_list", "get_operators",
+        "get_schema", "get_task", "get_task_comments", "get_task_time_in_status", "get_threaded_comments",
+        "get_time_entries", "get_workspace_hierarchy", "get_workspace_members", "list_document_page_attachments",
+        "list_document_pages", "resolve_assignees", "search", "search_reminders"
+      ],
+      "ask": [
+        "add_tag_to_task", "add_task_dependency", "add_task_link", "add_task_to_list", "add_time_entry",
+        "attach_task_file", "create_comment", "create_document", "create_document_page", "create_folder",
+        "create_list", "create_list_in_folder", "create_reminder", "create_task", "create_task_comment", "move_task",
+        "remove_tag_from_task", "remove_task_dependency", "remove_task_from_list", "remove_task_link",
+        "request_attachment_upload", "send_chat_message", "start_time_tracking", "stop_time_tracking",
+        "update_comment", "update_document_page", "update_folder", "update_list", "update_reminder", "update_task"
+      ],
+      "deny": [
+        "delete_comment", "delete_task", "execute_operator", "merge_tasks"
+      ]
+    },
+    "gmail": {
+      "prefix": "",
+      "read": [
+        "get_draft", "get_message", "get_thread", "list_drafts", "list_labels", "search_threads"
+      ],
+      "ask": [
+        "apply_sensitive_message_label", "apply_sensitive_thread_label", "create_draft", "create_label", "forward",
+        "label_message", "label_thread", "mark_message_spam", "mark_thread_spam", "reply", "send_message",
+        "unlabel_message", "unlabel_thread", "unmark_message_spam", "unmark_thread_spam", "untrash_message",
+        "untrash_thread", "update_draft", "update_label", "update_message_labels"
+      ],
+      "deny": [
+        "delete_draft", "delete_label", "trash_message", "trash_thread"
+      ]
+    },
+    "agenda": {
+      "prefix": "",
+      "read": [
+        "get_event", "list_calendars", "list_events", "search_events", "suggest_time"
+      ],
+      "ask": [
+        "create_event", "respond_to_event", "update_event"
+      ],
+      "deny": [
+        "delete_event"
+      ]
+    },
+    "atlassian": {
+      "prefix": "",
+      "read": [
+        "atlassianUserInfo", "discover", "executeRead", "getAccessibleAtlassianResources"
+      ],
+      "ask": [
+        "executeWrite"
+      ],
+      "deny": [
+        "executeDestructive"
+      ]
+    },
+    "cloudflare": {
+      "prefix": "",
+      "read": [
+        "d1_database_get", "d1_databases_list", "hyperdrive_config_get", "hyperdrive_configs_list", "kv_namespace_get",
+        "kv_namespaces_list", "migrate_pages_to_workers_guide", "r2_bucket_get", "r2_buckets_list",
+        "search_cloudflare_documentation", "workers_get_worker", "workers_get_worker_code", "workers_list"
+      ],
+      "ask": [
+        "d1_database_create", "hyperdrive_config_edit", "kv_namespace_create", "kv_namespace_update",
+        "r2_bucket_create"
+      ],
+      "deny": [
+        "d1_database_delete", "d1_database_query", "hyperdrive_config_delete", "kv_namespace_delete",
+        "r2_bucket_delete"
+      ]
+    },
+    "resend": {
+      "prefix": "",
+      "read": [
+        "get-automation", "get-automation-runs", "get-broadcast", "get-contact", "get-contact-import",
+        "get-contact-property", "get-domain", "get-domain-claim", "get-email", "get-email-metrics", "get-inbox",
+        "get-inbox-draft", "get-inbox-thread", "get-inbox-thread-email", "get-log", "get-received-email",
+        "get-received-email-attachment", "get-segment", "get-sent-email-attachment", "get-suppression", "get-template",
+        "get-tiptap-json-content", "get-topic", "get-usage", "get-webhook", "get-webhook-event", "get_more_tools",
+        "list-api-keys", "list-broadcast-clicked-links", "list-broadcast-recipients", "list-broadcasts",
+        "list-contact-imports", "list-contact-properties", "list-contact-segments", "list-contact-topics",
+        "list-contacts", "list-domains", "list-emails", "list-inbox-drafts", "list-inbox-labels", "list-inbox-threads",
+        "list-inboxes", "list-logs", "list-oauth-grants", "list-received-email-attachments", "list-received-emails",
+        "list-segments", "list-sent-email-attachments", "list-suppressions", "list-templates", "list-topics",
+        "list-webhook-event-attempts", "list-webhook-events", "list-webhooks"
+      ],
+      "ask": [
+        "add-contact-to-segment", "add-suppression", "batch-add-suppressions", "batch-remove-suppressions",
+        "cancel-broadcast", "cancel-email", "compose-broadcast", "compose-template", "connect-to-editor",
+        "create-automation", "create-broadcast", "create-contact", "create-contact-import", "create-contact-property",
+        "create-domain", "create-domain-claim", "create-inbox", "create-inbox-draft", "create-inbox-label",
+        "create-segment", "create-template", "create-topic", "create-webhook", "disconnect-from-editor",
+        "duplicate-automation", "duplicate-broadcast", "duplicate-template", "forward-inbox-thread-email",
+        "manage-events", "publish-template", "replay-webhook-event", "reply-to-inbox-thread-email",
+        "send-batch-emails", "send-broadcast", "send-email", "send-event", "send-inbox-draft", "share-email",
+        "update-automation", "update-broadcast", "update-contact", "update-contact-property", "update-contact-topics",
+        "update-domain", "update-email", "update-inbox", "update-inbox-draft", "update-inbox-label",
+        "update-inbox-thread", "update-segment", "update-template", "update-topic", "update-webhook", "verify-domain",
+        "verify-domain-claim"
+      ],
+      "deny": [
+        "create-api-key", "remove-api-key", "remove-automation", "remove-broadcast", "remove-contact",
+        "remove-contact-from-segment", "remove-contact-property", "remove-domain", "remove-inbox",
+        "remove-inbox-draft", "remove-inbox-label", "remove-inbox-thread", "remove-segment", "remove-suppression",
+        "remove-template", "remove-topic", "remove-webhook", "revoke-oauth-grant", "rotate-webhook-signing-secret",
+        "update-api-key"
+      ]
+    }
+  }
+}

@@ -1,0 +1,18 @@
+#!/bin/bash
+# tilde: connects a home (rules, skills, project files) to Claude Code, Codex and Cursor.
+# The engine is TypeScript (engine/src) and runs as it is on Node, without packages. This launcher only finds the
+# Node: the one tilde setup recorded for this machine, because hooks and launchd do not share the terminal's PATH.
+set -euo pipefail
+
+ENGINE="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+
+node="$(cat "$HOME/.config/tilde/node" 2>/dev/null || true)"
+if [ -z "$node" ] || [ ! -x "$node" ]; then
+  # Not set up yet, or that Node is gone: the one on the PATH, when it can run .ts.
+  node="$(command -v node || true)"
+  if [ -z "$node" ] || ! "$node" "$ENGINE/src/cli.ts" check >/dev/null 2>&1; then
+    echo "tilde: needs Node 22.18 or newer, which runs TypeScript as it is. Install it, then run: tilde setup" >&2
+    exit 1
+  fi
+fi
+TILDE_NODE="$node" exec "$node" "$ENGINE/src/cli.ts" "$@"

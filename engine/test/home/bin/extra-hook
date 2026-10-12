@@ -1,0 +1,3 @@
+#!/bin/sh
+# An extra PreToolUse hook that a home registers through tilde.json.
+exit 0

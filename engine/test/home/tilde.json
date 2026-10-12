@@ -1,0 +1,61 @@
+{
+  "sync": {
+    "label": "test.tilde.sync"
+  },
+  "domains": {
+    "strict": {
+      "name": "work",
+      "remotes": [
+        "git.example.com/acme/"
+      ]
+    },
+    "free": {
+      "name": "own"
+    }
+  },
+  "git": {
+    "ssh_aliases": {
+      "gh-own": "github.com"
+    },
+    "identity": {
+      "config": "git/own.gitconfig",
+      "remotes": [
+        "git@gh-own:someone/**"
+      ]
+    }
+  },
+  "connectors": {
+    "slack": "mcp__00000000-0000-0000-0000-000000000001",
+    "clickup": "mcp__00000000-0000-0000-0000-000000000002",
+    "gmail": "mcp__00000000-0000-0000-0000-000000000003",
+    "agenda": "mcp__00000000-0000-0000-0000-000000000004",
+    "atlassian": "mcp__00000000-0000-0000-0000-000000000005",
+    "cloudflare": "mcp__00000000-0000-0000-0000-000000000006",
+    "resend": "mcp__00000000-0000-0000-0000-000000000007"
+  },
+  "guard": {
+    "protected": [
+      {
+        "pattern": "/protected-area/",
+        "reason": "The protected area is off limits in the tests."
+      }
+    ]
+  },
+  "claude": {
+    "settings": {
+      "effortLevel": "medium"
+    },
+    "deny": [
+      "Read(~/protected-area/**)"
+    ],
+    "hooks": {
+      "PreToolUse": [
+        {
+          "matcher": "*",
+          "command": "bin/extra-hook",
+          "timeout": 10
+        }
+      ]
+    }
+  }
+}

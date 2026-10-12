@@ -1,0 +1,34 @@
+{
+  "about": "What tilde push-check holds back until the user says yes. approval: every change under these paths (instructions and code). suspicious: an added line, in any file, that matches one of these patterns. escalation: the same, except in plans/ and context/, because the log and the plans are about exactly these things. Patterns ignore case. ponytail: a pattern list, no LLM review; it catches known injection and escalation forms, not a clever paraphrase without keywords. Upgrade: an offline review of the diff by a model before the push.",
+  "approval": [
+    "AGENTS.md", "CONTEXT.md", "tilde.json", "devices/", "skills/", "bin/", "engine/", "local/", ".githooks/",
+    ".gitattributes", ".gitignore"
+  ],
+  "suspicious": [
+    {
+      "why": "tells an agent to drop its instructions",
+      "pattern": "(ignore|disregard|forget) (all |any |the )?(previous|prior|above|earlier|preceding) (instructions|rules|prompts?)"
+    },
+    {
+      "why": "the same in Dutch",
+      "pattern": "negeer (alle |de )?(vorige|eerdere|bovenstaande) (instructies|regels)"
+    },
+    { "why": "gives an agent a new role or new instructions", "pattern": "you are now |new instructions:" },
+    { "why": "downloads a script and runs it", "pattern": "curl[^|]*\\|\\s*(ba|z)?sh|wget[^|]*\\|\\s*(ba|z)?sh" },
+    { "why": "decodes hidden content, or is a long encoded blob", "pattern": "base64 (-d|--decode)|[A-Za-z0-9+/=]{200,}" },
+    { "why": "imitates a system or role message", "pattern": "</?(system|assistant|human)[ >]|system prompt" },
+    { "why": "an HTML comment: text a reader does not see", "pattern": "<!--" },
+    { "why": "an image URL with a query string can carry data out", "pattern": "!\\[[^\\]]*\\]\\(https?://[^)]*\\?" },
+    { "why": "opens a network connection from the shell", "pattern": "/dev/tcp/|\\bnc -[a-z]*[el]" }
+  ],
+  "escalation": [
+    {
+      "why": "switches off an agent's permission checks",
+      "pattern": "dangerously|allowUnsandboxed|bypassPermissions|skip-permissions"
+    },
+    { "why": "scripts macOS or changes background jobs", "pattern": "osascript|launchctl" },
+    { "why": "touches SSH access or the Keychain", "pattern": "authorized_keys|find-generic-password" },
+    { "why": "skips or redirects the git hooks", "pattern": "--no-verify|hooksPath" },
+    { "why": "runs arbitrary or destructive commands", "pattern": "\\beval\\b|rm -rf|\\bsudo " }
+  ]
+}

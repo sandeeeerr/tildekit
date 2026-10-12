@@ -1,0 +1,15 @@
+{
+  "domains": {
+    "strict": {
+      "name": "work",
+      "remotes": []
+    },
+    "free": {
+      "name": "own"
+    }
+  },
+  "connectors": {},
+  "guard": {
+    "protected": []
+  }
+}

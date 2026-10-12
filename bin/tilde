@@ -1,0 +1,3 @@
+#!/bin/bash
+# Forwarder: hooks, launchd and ~/.local/bin point here; the code lives in engine/.
+exec "${TILDE_HOME:-$HOME/tilde}/engine/bin/tilde" "$@"

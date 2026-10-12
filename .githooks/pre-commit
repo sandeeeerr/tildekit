@@ -1,0 +1,8 @@
+#!/bin/sh
+# Blocks secrets and invisible characters (hidden instructions) in the home.
+set -e
+gitleaks git --pre-commit --staged --no-banner --redact --log-level warn --verbose
+if git diff --cached -U0 --no-color | perl -CSD -ne 'print if /^\+.*[\x{200B}-\x{200F}\x{202A}-\x{202E}\x{2060}-\x{2069}\x{FEFF}]/' | grep -q .; then
+  echo "pre-commit: invisible unicode characters found in staged changes" >&2
+  exit 1
+fi
