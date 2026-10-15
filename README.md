@@ -96,4 +96,4 @@ The tests are the specification: `~/tilde/engine/test/run.sh`.
 
 ## License
 
-MIT
+MIT. Made by [Sander de Vries](https://sanderr.nl/).
