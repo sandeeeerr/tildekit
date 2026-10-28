@@ -27,6 +27,14 @@ import * as ui from "./ui.ts";
 
 export const CLAUDE_MD = join(HOME, ".claude/CLAUDE.md");
 export const CLAUDE_SETTINGS = join(HOME, ".claude/settings.json");
+
+/** Config folders of extra Claude accounts (`~/.claude_<name>`, used through CLAUDE_CONFIG_DIR). They get the same
+ * settings as a link and the same skills; CLAUDE.md is not needed, Claude reads ~/.claude/CLAUDE.md there as well.
+ * ponytail: found by name; a ~/.claude_* folder that is not an account would also get the links. */
+export const CLAUDE_ACCOUNTS = readdirSync(HOME, { withFileTypes: true })
+  .filter((entry) => entry.isDirectory() && /^\.claude_[\w-]+$/.test(entry.name))
+  .map((entry) => join(HOME, entry.name))
+  .sort();
 export const CURSOR_HOOKS = join(HOME, ".cursor/hooks.json");
 export const CODEX_RULES = join(HOME, ".codex/rules/tilde.rules");
 export const CODEX_CONFIG = join(HOME, ".codex/config.toml");
@@ -104,6 +112,7 @@ export async function setup(name?: string): Promise<boolean> {
 /** The part of setup that writes each tool's own configuration. */
 export function setupTools(): void {
   writeJson(CLAUDE_SETTINGS, claudeSettings(readJsonOr(CLAUDE_SETTINGS, {})));
+  linkClaudeAccounts();
   writeJson(CURSOR_HOOKS, cursorHooks(readJsonOr(CURSOR_HOOKS, {})));
   codexConfig();
   gitConfig();
@@ -111,7 +120,11 @@ export function setupTools(): void {
 
 // --- skills: every skill of the home linked where Claude, Codex and Cursor look for them ---
 
-export const SKILL_FOLDERS = [join(HOME, ".claude/skills"), join(HOME, ".agents/skills")];
+export const SKILL_FOLDERS = [
+  join(HOME, ".claude/skills"),
+  join(HOME, ".agents/skills"),
+  ...CLAUDE_ACCOUNTS.map((folder) => join(folder, "skills")),
+];
 
 /** The skills of the home: every folder in skills/. */
 export function skillNames(): string[] {
@@ -190,6 +203,18 @@ export function claudeSettings(current: ClaudeSettings): ClaudeSettings {
     },
   };
   return merge(settings, extra.settings ?? {}) as ClaudeSettings;
+}
+
+/** Every extra Claude account gets ~/.claude/settings.json as a link: the same guard, hooks and rules. */
+function linkClaudeAccounts(): void {
+  for (const folder of CLAUDE_ACCOUNTS) {
+    const link = join(folder, "settings.json");
+    const existing = lstatSync(link, { throwIfNoEntry: false });
+    if (existing?.isSymbolicLink() && readlinkSync(link) === CLAUDE_SETTINGS) continue;
+    backup(link);
+    rmSync(link, { force: true });
+    symlinkSync(CLAUDE_SETTINGS, link);
+  }
 }
 
 function hook(command: string, timeout: number, matcher?: string): Hook {
@@ -309,6 +334,10 @@ export function uninstall(): void {
   if (existsSync(CLAUDE_SETTINGS)) {
     const settings = claudeWithout(readJsonOr(CLAUDE_SETTINGS, {}));
     writeOrRemove(CLAUDE_SETTINGS, settings, Object.keys(settings).length === 0);
+  }
+  for (const folder of CLAUDE_ACCOUNTS) {
+    const link = join(folder, "settings.json");
+    if (lstatSync(link, { throwIfNoEntry: false })?.isSymbolicLink() && readlinkSync(link) === CLAUDE_SETTINGS) rmSync(link);
   }
   if (existsSync(CURSOR_HOOKS)) {
     const hooks = cursorWithout(readJsonOr(CURSOR_HOOKS, {}));

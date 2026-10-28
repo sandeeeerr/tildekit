@@ -34,6 +34,9 @@ const WHY = {
   pushToMainCursor: "Push to main or master: the user confirms first.",
   remoteShell: "SSH, scp and rsync only go through Bash; the user then gets a confirmation prompt.",
   remoteShellCursor: "SSH, scp or rsync: the user confirms first.",
+  hop:
+    "tilde ssh, scp and rsync only reach own hosts; another ssh, scp or rsync in the same command could hop on " +
+    "to any host. Run that one on its own line, as plain ssh, scp or rsync (it asks).",
   writeOperation:
     "executeRead only allows operations starting with get, list, search, lookup, fetch, read or find; " +
     "this looks like a write.",
@@ -98,6 +101,9 @@ const GIT = /(^|\s)git(\s.*)$/;
 const GIT_PUSH = /(^|[\s"'])git(\s+-C\s+\S+)?\s+push(\s|$)/; // a quote: the script a shell gets, see unquoted()
 const TILDE_SYNC = /(^|[;&|\s/])tilde\s+sync([;&|\s]|$)/;
 const REMOTE_SHELL = /(^|[;&|\s])(ssh|scp|rsync)\s/;
+// tilde ssh|scp|rsync checks its own host (remote.ts); what it runs on that host may not start another remote shell.
+const OWN_REMOTE = /(^|[;&|\s/])tilde\s+(ssh|scp|rsync)\s/g;
+const NESTED_REMOTE = /(^|[;&|\s'"(])(ssh|scp|rsync)\s/;
 
 // These exact commands are left to the ask rules in settings.json, which show the user a confirmation prompt.
 // Claude ignores an "ask" from a hook in bypass mode, but an ask rule always asks (tested 1 Oct 2026).
@@ -160,8 +166,11 @@ function shell(cmd: string, cwd: string, tool: Tool, viaBash: boolean): Verdict 
     return viaBash && EXACT_PUSH.includes(cmd.trim()) ? undefined : deny(WHY.pushToMain);
   }
 
+  const rests = lines.map((line) => line.replace(OWN_REMOTE, "$1"));
+  if (rests.some((rest, i) => rest !== lines[i] && NESTED_REMOTE.test(rest))) return deny(WHY.hop);
+
   // ssh, scp and rsync always ask: in Claude through the ask rules in settings.json, which only know Bash.
-  if (lines.some((line) => REMOTE_SHELL.test(line))) {
+  if (rests.some((rest) => REMOTE_SHELL.test(rest))) {
     if (tool === "cursor") return ask(WHY.remoteShellCursor);
     if (!viaBash) return deny(WHY.remoteShell);
   }

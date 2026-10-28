@@ -77,14 +77,10 @@ function run(auto: boolean, message: string): void {
   }
 }
 
-/** Keeps the reason for the session start, and in auto mode shows a macOS notification. */
+/** Keeps the reason for the session start and tilde doctor: that is where a sync nobody watched reports. */
 function stop(auto: boolean, message: string): never {
   mkdirSync(CONF, { recursive: true });
   writeFileSync(HELD, `${now()} · ${message}\n`);
-  if (auto) {
-    const script = `display notification ${JSON.stringify(message)} with title "Tilde sync"`;
-    spawnSync("osascript", ["-e", script], { stdio: "ignore" });
-  }
   ui.error(message);
   process.exit(1);
 }
@@ -163,21 +159,40 @@ function base(localSha: string, remoteSha: string): string {
   }
 }
 
-/** What in this range needs the user's approval: changed instructions or code, and suspicious added lines. */
-function findings(from: string, to: string): string[] {
+/**
+ * What the next sync from this folder would hold back for the user's yes, uncommitted work included: a sync commits
+ * first. Nothing when there is no upstream.
+ */
+export function waiting(): string[] {
+  try {
+    return findings(capture("rev-parse", "@{u}"));
+  } catch {
+    return [];
+  }
+}
+
+/**
+ * What in this range needs the user's approval: changed instructions or code, and suspicious added lines.
+ * Without `to` the range ends at the working tree, new files included by name.
+ */
+function findings(from: string, to?: string): string[] {
   const patterns = readJson<Patterns>(new URL("../push-check.json", import.meta.url));
   if (!patterns) throw new Error("engine/push-check.json is missing or not valid JSON");
   const anyOf = (list: { pattern: string }[]) => new RegExp(list.map((entry) => entry.pattern).join("|"), "i");
   const suspicious = anyOf(patterns.suspicious);
   const escalation = anyOf(patterns.escalation);
+  const range = to === undefined ? [from] : [from, to];
 
-  const changed = capture("diff", "--name-only", from, to).split("\n");
+  // -z: names as they are. Without it git puts a name with a quote or an accent in it between quotes, and such a
+  // file under skills/ would no longer start with "skills/".
+  const changed = capture("diff", "--name-only", "-z", ...range).split("\0");
+  if (to === undefined) changed.push(...capture("ls-files", "--others", "--exclude-standard", "-z").split("\0"));
   const found = changed
     .filter((file) => patterns.approval.some((path) => file.startsWith(path)))
     .map((file) => `instructions or code changed: ${file}`);
 
   let file = "";
-  for (const line of capture("diff", "-U0", "--no-color", from, to).split("\n")) {
+  for (const line of capture("diff", "-U0", "--no-color", ...range).split("\n")) {
     const header = /^\+\+\+ b\/(.*)/.exec(line);
     if (header) file = header[1];
     const added = /^\+(?!\+\+)(.*)/.exec(line)?.[1];

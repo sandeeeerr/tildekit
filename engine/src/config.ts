@@ -41,6 +41,7 @@ type Home = {
   domains?: { strict?: { name?: string; remotes?: string[] }; free?: { name?: string } };
   git?: { identity?: { config?: string; remotes?: string[] }; ssh_aliases?: Record<string, string> };
   sync?: { label?: string }; // the name of the launchd job
+  ssh?: { own_hosts?: string[] }; // hosts tilde ssh, scp and rsync reach without a confirmation prompt
   leak?: { terms?: string[] }; // extra words that must never appear in engine/
   // What the home adds to Claude's settings.json; hook commands are relative to the home.
   claude?: {

@@ -45,6 +45,11 @@ const commands: [string, string, Decision, string?][] = [
   ["~/tilde/bin/tilde sync --auto", "own", "deny"],
   ["ssh server-prod 'ls'", "work", "allow"], // Claude: the ask rule for ssh asks for confirmation
   ["ssh server-prod 'ls'", "own", "deny", TERMINAL], // ssh only through Bash
+  // tilde ssh checks the host itself (remote.ts); no ask rule matches it, so a hop to another host is blocked here.
+  ["tilde ssh box 'docker ps'", "own", "allow"],
+  ["mkdir -p /tmp/x && tilde scp box:a.txt /tmp/x/", "own", "allow"],
+  ["tilde ssh box 'ssh server-prod ls'", "own", "deny"],
+  ["tilde ssh box ls; rsync -a x server-prod:y", "own", "deny"],
   ["cp a.zip /protected-area/x", "own", "deny"], // guard.protected from tilde.json
   ["npm run build", "work", "allow"],
   ["git commit --no-verify -m x", "own", "deny"], // skipping hooks is allowed nowhere
@@ -85,6 +90,7 @@ test("shell commands", () => {
 test("Cursor asks where Claude blocks", () => {
   assert.equal(cursor("git push", "work"), "ask");
   assert.equal(cursor("ssh host ls", "own"), "ask");
+  assert.equal(cursor("tilde ssh box ls", "own"), "allow");
   assert.equal(cursor("npm run build", "own"), "allow");
 });
 

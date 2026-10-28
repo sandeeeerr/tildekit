@@ -2,7 +2,17 @@
 # Blocks secrets and invisible characters (hidden instructions) in the home.
 set -e
 gitleaks git --pre-commit --staged --no-banner --redact --log-level warn --verbose
-if git diff --cached -U0 --no-color | perl -CSD -ne 'print if /^\+.*[\x{200B}-\x{200F}\x{202A}-\x{202E}\x{2060}-\x{2069}\x{FEFF}]/' | grep -q .; then
-  echo "pre-commit: invisible unicode characters found in staged changes" >&2
+# Per added line with such a character: file, line number and which characters, so the user can find them.
+found="$(git diff --cached -U0 --no-color | perl -CSD -ne '
+  if (/^\+\+\+ "?b\/(.*?)"?\t?$/) { $file = $1 }
+  if (/^@@ [^+]*\+(\d+)/) { $line = $1 - 1 }
+  next unless /^\+/; # every added line is checked, also one that looks like a header
+  $line++;
+  my %seen;
+  $seen{sprintf "U+%04X", ord}++ for /[\x{200B}-\x{200F}\x{202A}-\x{202E}\x{2060}-\x{2069}\x{FEFF}]/g;
+  print "  $file:$line  ", join(" ", sort keys %seen), "\n" if %seen;')"
+if [ -n "$found" ]; then
+  echo "pre-commit: invisible unicode characters in staged changes:" >&2
+  echo "$found" >&2
   exit 1
 fi

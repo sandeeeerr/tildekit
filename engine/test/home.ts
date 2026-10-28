@@ -19,11 +19,9 @@ const GIT_USER = { GIT_AUTHOR_NAME: "t", GIT_AUTHOR_EMAIL: "t@t", GIT_COMMITTER_
 export function makeTmp(): string {
   const tmp = realpathSync(mkdtempSync(join(tmpdir(), "tilde-test-"))); // git returns the physical path
   process.on("exit", () => rmSync(tmp, { recursive: true, force: true }));
-  // No real launchd job and no notifications during a test.
+  // No real launchd job during a test.
   mkdirSync(join(tmp, "stub"));
-  for (const name of ["launchctl", "osascript"]) {
-    writeFileSync(join(tmp, "stub", name), "#!/bin/sh\nexit 0\n", { mode: 0o755 });
-  }
+  writeFileSync(join(tmp, "stub/launchctl"), "#!/bin/sh\nexit 0\n", { mode: 0o755 });
   return tmp;
 }
 

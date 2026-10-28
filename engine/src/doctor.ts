@@ -9,6 +9,7 @@ import { type Check, check, loadLocal } from "./local.ts";
 import { CODEX, CURSOR, codexRules, cursorRules, device } from "./rules.ts";
 import { syncStale } from "./session.ts";
 import {
+  CLAUDE_ACCOUNTS,
   CLAUDE_MD,
   CLAUDE_SETTINGS,
   CODEX_CONFIG,
@@ -33,8 +34,8 @@ function group(name: string, checks: Check[]): void {
   ui.line();
 }
 
-/** Prints the checks in groups; false when a check failed. With --json: the same checks as data, for the app. */
-export async function doctor(args: string[] = []): Promise<boolean> {
+/** Every check in its group, the inbox candidates and the number of uncommitted changes: what doctor shows, also as --json. */
+export async function report() {
   const local = (await loadLocal()).flatMap((extension) => extension.doctor?.() ?? []);
   const groups: [string, Check[]][] = [
     ["Engine", engine()],
@@ -47,6 +48,12 @@ export async function doctor(args: string[] = []): Promise<boolean> {
   const failed = groups.flatMap(([, checks]) => checks).filter((result) => !result.ok).length;
   const inbox = (readText(join(TILDE, "inbox.md")) ?? "").split("\n").filter((line) => /^- [0-9]/.test(line));
   const changes = git("status", "--porcelain").split("\n").filter(Boolean).length;
+  return { groups, failed, inbox, changes };
+}
+
+/** Prints the checks in groups; false when a check failed. With --json: the same checks as data, for the app. */
+export async function doctor(args: string[] = []): Promise<boolean> {
+  const { groups, failed, inbox, changes } = await report();
   if (args.includes("--json")) {
     const data = { device: device(), groups: groups.map(([name, checks]) => ({ name, checks })), failed, inbox: inbox.length, changes };
     process.stdout.write(`${JSON.stringify(data)}\n`);
@@ -152,7 +159,19 @@ function skills(): Check[] {
 // --- each tool's own configuration: is everything there that tilde setup writes? ---
 
 function toolChecks(): Check[] {
-  return [claude(), cursor(), codexPrompts(), codexMemories(), gitHooks()];
+  return [claude(), ...claudeAccounts(), cursor(), codexPrompts(), codexMemories(), gitHooks()];
+}
+
+/** Each extra Claude account reads the same settings.json, so the guard runs there too. */
+function claudeAccounts(): Check[] {
+  return CLAUDE_ACCOUNTS.map((folder) => {
+    const where = relative(HOME, folder);
+    return check(
+      readLink(join(folder, "settings.json")) === CLAUDE_SETTINGS,
+      `Claude account ${where}: shares settings.json`,
+      `Claude account ${where}: settings.json is not a link to ~/.claude/settings.json (tilde setup)`,
+    );
+  });
 }
 
 // What tilde setup writes into Claude's settings, by the name a user knows it by.
