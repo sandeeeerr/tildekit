@@ -1,7 +1,7 @@
 // Checks for `tilde setup` and `tilde doctor` in a throwaway HOME: settings, hooks, the launchd job and the home's
 // own steps. Run with: node --test engine/test/
 import assert from "node:assert/strict";
-import { existsSync, lstatSync, readFileSync, writeFileSync } from "node:fs";
+import { existsSync, lstatSync, mkdirSync, readFileSync, readlinkSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { test } from "node:test";
 import { makeHome } from "./home.ts";
@@ -15,7 +15,17 @@ const preToolUse = (): string[] => settings().hooks.PreToolUse.flatMap((entry: a
 const setup = () => run(["setup", "test-mac"]); // ends with tilde doctor, which may be red here
 const doctor = () => run(["doctor"]);
 
+// A second Claude account with a settings.json of its own, as Claude makes it on first start.
+mkdirSync(join(home, ".claude_work"));
+writeFileSync(join(home, ".claude_work/settings.json"), "{}");
+
 const firstRun = setup();
+
+test("an extra Claude account shares the settings and skills", () => {
+  assert.equal(readlinkSync(join(home, ".claude_work/settings.json")), SETTINGS);
+  assert.ok(lstatSync(join(home, ".claude_work/skills/demo")).isSymbolicLink());
+  assert.ok(doctor().includes("✓ Claude account .claude_work: shares settings.json"));
+});
 
 test("setup writes Claude's settings", () => {
   assert.ok(preToolUse().includes(`${tilde}/bin/tilde guard claude`), "the guard hook");

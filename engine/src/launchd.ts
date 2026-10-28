@@ -8,7 +8,7 @@ const LABEL = home.sync?.label ?? "local.tilde.sync";
 const PLIST = join(HOME, "Library/LaunchAgents", `${LABEL}.plist`);
 const DOMAIN = `gui/${process.getuid?.()}`;
 // launchd starts with almost no PATH; git and gitleaks live here.
-const PATH = "/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin";
+export const PATH ="/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin";
 
 /**
  * What launchd runs: the approved engine/ from the remote, unpacked in a temp dir, not the local working copy.

@@ -29,6 +29,17 @@ const COMMANDS: Record<string, Command> = {
     help: "Move the oldest log entries of a heavy project file to context/archive/",
     run: async () => (await import("./archive.ts")).archive(),
   },
+  ...Object.fromEntries(
+    ["ssh", "scp", "rsync"].map((tool): [string, Command] => [
+      tool,
+      {
+        group: DAILY,
+        usage: tool === "ssh" ? "ssh <host> [command]" : `${tool} <args>`,
+        help: `${tool} to an own host (ssh.own_hosts in tilde.json), without a confirmation prompt`,
+        run: async (args) => (await import("./remote.ts")).remote(tool, args),
+      },
+    ]),
+  ),
   help: { group: DAILY, help: "This list", run: help },
   setup: {
     group: SETUP,

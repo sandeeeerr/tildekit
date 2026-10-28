@@ -36,6 +36,7 @@ Setup only adds what is its own and keeps a copy of what it overwrites in `~/.ti
 - `~/.claude/CLAUDE.md` (imports your rules), `~/.claude/settings.json` (hooks, and rules that ask or deny)
 - `~/.codex/AGENTS.md`, `~/.codex/rules/tilde.rules`, `~/.cursor/rules/tilde.mdc`, `~/.cursor/hooks.json`
 - links to your skills in `~/.claude/skills` and `~/.agents/skills`
+- for an extra Claude account (`~/.claude_<name>`, used through `CLAUDE_CONFIG_DIR`): `settings.json` as a link to the one in `~/.claude`, and the same skills
 - the command `tilde` in `~/.local/bin`, a launchd job for the sync, and `~/.config/tilde`
 
 `tilde uninstall` takes all of that out again. Your home in `~/tilde` stays.
@@ -47,6 +48,7 @@ Setup only adds what is its own and keeps a copy of what it overwrites in `~/.ti
 | `tilde doctor` | Is everything in place, and is anything waiting for you? |
 | `tilde sync [message]` | Commit, pull and push the home; a push with rules, skills or code waits for your `y` |
 | `tilde archive` | Move the oldest log entries of a heavy project file aside |
+| `tilde ssh <host> [command]` | SSH without a prompt, but only to a host in `ssh.own_hosts`; `tilde scp` and `tilde rsync` likewise |
 | `tilde help` | Every command |
 
 The sync job pushes notes and logs by itself. A change to `AGENTS.md`, a skill, `tilde.json` or `engine/` is held back, and so is any added line that looks like a prompt injection. You see what is waiting at the start of a session and in `tilde doctor`, and you approve it with `tilde sync` in your own terminal.
@@ -71,6 +73,7 @@ In `tilde.json`:
 - `domains`: the names of your two domains, and the remotes that count as the strict one. A repo without a remote counts as strict.
 - `connectors`: the ID of an MCP connector you want watched, for example `"slack": "mcp__..."`. Reading is free, writing asks for a click, deleting is closed. The lists per connector are in `engine/connectors.json`.
 - `guard.protected`: paths the shell must not touch, with the reason.
+- `ssh.own_hosts`: your own machines, for `tilde ssh`, `scp` and `rsync`. Any other ssh keeps asking.
 - `claude`: settings, deny rules and hooks you want in Claude's `settings.json` on every Mac.
 
 ## Updating the engine

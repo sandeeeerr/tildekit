@@ -170,6 +170,21 @@ test("at a terminal a change to the engine runs its tests, and only passing ones
   assert.equal(pushed(), "engine");
 });
 
+test("the pre-commit scan stops an invisible character and says where it is", () => {
+  const { mac, pushed } = world();
+  const a = mac("a");
+  a.add("notes.md", "a line that is fine");
+  const char = String.fromCharCode; // written as numbers: this file passes the same scan
+  a.add("notes.md", `+++ b/decoy ${char(0x200b)}hidden`); // looks like a diff header: it is checked all the same
+  a.add("context/projects/demo.md", `left${char(0x202a)}to${char(0x200e)}right`);
+  const blocked = a.sync("invisible");
+  assert.ok(!blocked.ok);
+  assert.match(blocked.output, /context\/projects\/demo\.md:\d+ {2}U\+200E U\+202A/, "file, line and characters");
+  assert.match(blocked.output, /:\d+ {2}U\+200B/, "the line that looks like a header");
+  assert.match(a.held() ?? "", /Commit blocked by the pre-commit scan/);
+  assert.equal(pushed(), "seed");
+});
+
 test("the forwarder also works when a machine with an old job or hook runs bin/tilde as text", () => {
   const { mac } = world();
   const a = mac("a");

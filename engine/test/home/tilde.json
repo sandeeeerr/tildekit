@@ -2,6 +2,9 @@
   "sync": {
     "label": "test.tilde.sync"
   },
+  "ssh": {
+    "own_hosts": ["box"]
+  },
   "domains": {
     "strict": {
       "name": "work",
